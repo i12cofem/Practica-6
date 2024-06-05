@@ -1,4 +1,4 @@
-# Practica-6
+# Practica 6: Arquitecturas paralelas
 El código desplegado en el cluster de docker básicamente se trata de un programa destinado a la multiplicación de 2 matrices, pero esta vez resuelto por un sistema distribuido.
 
 ## 1.Inclusiones y definiciones
