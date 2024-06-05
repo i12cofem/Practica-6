@@ -190,8 +190,92 @@ Entonces las submatrices subA y subC
 
 __PI_Scatter__ Implica un proceso raíz designado que envía datos a todos los procesos en un comunicador. La principal diferencia entre __MPI_Bcast y MPI_Scatter__ es pequeña pero importante. __MPI_Bcast__ envía el mismo dato a todos los procesos mientras __MPI_Scatter__ envía  __fragmentos__ de una matriz a diferentes procesos. Consulte la ilustración a continuación para obtener más aclaraciones.
 
+[![image.png](https://i.postimg.cc/sxH9vx11/image.png)](https://postimg.cc/D4sbN2rK)
 
 
+```c
+MPI_Scatter(
+    void* send_data,
+    int send_count,
+    MPI_Datatype send_datatype,
+    void* recv_data,
+    int recv_count,
+    MPI_Datatype recv_datatype,
+    int root,
+    MPI_Comm communicator)
+```
+
+El primer parámetro, __send_data__ es una matriz de datos que reside en el proceso raíz. El segundo y tercer parámetro, __send_count y send_datatype__, dictan cuántos elementos de un tipo de datos MPI específico se enviarán a cada proceso. Si __send_count__ es uno y __send_datatype__ es __MPI_INT__, entonces el proceso cero obtiene el primer número entero de la matriz, el proceso uno obtiene el segundo número entero, y así sucesivamente. Si __send_count__ es dos, entonces el proceso cero obtiene el primer y segundo número entero, el proceso uno obtiene el tercero y el cuarto, y así sucesivamente. En la práctica, __send_count__ suele ser igual al número de elementos de la matriz dividido por el número de procesos.
+
+Los parámetros de recepción del prototipo de función son casi idénticos con respecto a los parámetros de envío. El __recv_data__ parámetro es un búfer de datos que puede contener __recv_count__ elementos que tienen un tipo de datos de __recv_datatype__. Los últimos parámetros, root y communicator, indican el proceso raíz que está dispersando la matriz de datos y el comunicador en el que residen los procesos.
+
+```c
+MPI_Scatter(A, stripe_size * N, MPI_INT, subA, stripe_size * N, MPI_INT, 0, MPI_COMM_WORLD);
+```
+
+## 5. Función Bcast Explicación
+
+Un broadcast es una de las técnicas de comunicación colectiva estándar. Durante un broadcast, un proceso envía los mismos datos a todos los procesos en un comunicador. Uno de los usos principales de la transmisión es enviar entradas del usuario a un programa paralelo o enviar parámetros de configuración a todos los procesos.
+
+El patrón de comunicación de una transmisión se ve así:
+
+[![image.png](https://i.postimg.cc/bwFtfWWH/image.png)](https://postimg.cc/gx8JvSYn)
+
+```c
+MPI_Bcast(
+    void* data,
+    int count,
+    MPI_Datatype datatype,
+    int root,
+    MPI_Comm communicator)
+```
+
+Aunque el proceso raíz y el proceso receptor realizan trabajos diferentes, todos llaman a la misma __MPI_Bcast__ función. Cuando el proceso raíz (en nuestro ejemplo, era el proceso cero) llama __MPI_Bcast__, la vairable __data__ se enviará a todos los demás procesos. Cuando todos los procesos receptores llamen __MPI_Bcast__, la variable __data__ se completará con los datos del proceso raíz.
+
+```c
+MPI_Bcast(B, N * N, MPI_INT, 0, MPI_COMM_WORLD);
+```
+
+## 6. LLamada de la función de multiplicación
+
+```c
+matrix_multiply(subA, B, subC, stripe_size);
+```
+Cada proceso ejecuta la función __matrix_multiply__ en su __submatriz subA y la matriz completa B__ para calcular una submatriz de resultado __subC__.
+
+## 7. Función Gather.
+
+__MPI_Gather__ es la inversa de __MPI_Scatter__. En lugar de distribuir elementos de un proceso a muchos procesos, __MPI_Gather__ toma elementos de muchos procesos y los reúne en un solo proceso. Esta rutina es muy útil para muchos algoritmos paralelos, como la clasificación y búsqueda paralelas. A continuación se muestra una ilustración sencilla de este algoritmo.
+
+[![image.png](https://i.postimg.cc/sDFYxMjQ/image.png)](https://postimg.cc/BtgLwQ14)
+
+Similar a __MPI_Scatter__, __MPI_Gather__ toma elementos de cada proceso y los reúne en el proceso raíz. Los elementos están ordenados por el rango del proceso del que fueron recibidos. El prototipo de función para __MPI_Gather__ es idéntico al de __MPI_Scatter__.
+
+```c
+MPI_Gather(
+    void* send_data,
+    int send_count,
+    MPI_Datatype send_datatype,
+    void* recv_data,
+    int recv_count,
+    MPI_Datatype recv_datatype,
+    int root,
+    MPI_Comm communicator)
+```
+
+En __MPI_Gather__, solo el proceso raíz necesita tener un búfer de recepción válido. Todos los demás procesos de llamada pueden pasar __NULL__ por __recv_data__. Además, no olvide que el parámetro __recv_count__ es el recuento de elementos recibidos por proceso , no la suma total de recuentos de todos los procesos. Esto a menudo puede confundir a los programadores MPI principiantes.
+
+```c
+MPI_Gather(subC, stripe_size * N, MPI_INT, C, stripe_size * N, MPI_INT, 0, MPI_COMM_WORLD);
+```
+
+## Ejemplo Visual
+
+[![image.png](https://i.postimg.cc/280g75Rj/image.png)](https://postimg.cc/MvjsWqpg)
+
+## Tiempos de ejecución
+
+[![image.png](https://i.postimg.cc/1zwGp69N/image.png)](https://postimg.cc/CZMn0RnF)
 
 
 
